@@ -4,36 +4,36 @@ Sample Docker build files to facilitate installation, configuration, and environ
 ## How to build and run
 This project offers sample Dockerfiles for:
  * Oracle Database 19c (19.3.0) Enterprise Edition and Standard Edition 2
- * Oracle Database 18c (18.4.0) Express Edition (XE)
- * Oracle Database 18c (18.3.0) Enterprise Edition and Standard Edition 2
- * Oracle Database 12c Release 2 (12.2.0.2) Enterprise Edition and Standard Edition 2
- * Oracle Database 12c Release 1 (12.1.0.2) Enterprise Edition and Standard Edition 2
- * Oracle Database 11g Release 2 (11.2.0.2) Express Edition (XE)
 
 To assist in building the images, you can use the [buildDockerImage.sh](dockerfiles/buildDockerImage.sh) script. See below for instructions and usage.
 
 The `buildDockerImage.sh` script is just a utility shell script that performs MD5 checks and is an easy way for beginners to get started. Expert users are welcome to directly call `docker build` with their prefered set of parameters.
 
 ### Building Oracle Database Docker Install Images
-**IMPORTANT:** You will have to provide the installation binaries of Oracle Database (except for Oracle Database 18c XE) and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html), make sure you use the linux link: *Linux x86-64*. The needed file is named *linuxx64_<version>_database.zip*. You also have to make sure to have internet connectivity for yum. Note that you must not uncompress the binaries. The script will handle that for you and fail if you uncompress them manually!
+**IMPORTANT:** You will have to provide the installation binaries of Oracle Database and put them into the `cit472dockerfiles/19.3.0` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html), make sure you use the linux link: *Linux x86-64*. The needed file is named *linuxx64_<version>_database.zip*. It would be LINUX.X64_193000_db_home.zip at the time I write this readme. You also have to make sure to have internet connectivity for yum. Note that you must not uncompress the binaries. The script will handle that for you and fail if you uncompress them manually!
 
-Before you build the image make sure that you have provided the installation binaries and put them into the right folder. Once you have chosen which edition and version you want to build an image of, go into the **dockerfiles** folder and run the **buildDockerImage.sh** script:
+Before you build the image make sure that you have provided the installation binaries and put them into the right folder. Once you have chosen which edition and version you want to build an image of, go into the **cit472dockerfiles** folder and run the **buildDockerImage.sh** script:
 
-    [oracle@localhost dockerfiles]$ ./buildDockerImage.sh -h
+    [oracle@localhost cit472dockerfiles]$ ./buildDockerImage.sh -h
     
-    Usage: buildDockerImage.sh -v [version] [-e | -s | -x] [-i] [-o] [Docker build option]
+    Usage: buildDockerImage.sh -v [version] [-e | -s] [-i] [-o] [Docker build option]
     Builds a Docker Image for Oracle Database.
     
     Parameters:
        -v: version to build
-           Choose one of: 11.2.0.2  12.1.0.2  12.2.0.1  18.3.0  18.4.0  19.3.0
+           Choose one of: 19.3.0
        -e: creates image based on 'Enterprise Edition'
        -s: creates image based on 'Standard Edition 2'
-       -x: creates image based on 'Express Edition'
        -i: ignores the MD5 checksums
        -o: passes on Docker build option
     
-    * select one edition only: -e, -s, or -x
+    * select one edition only: -e, -s
+    
+    For the CIT472 purpose.  You should do the following:
+    
+    ./buildDockerImage.sh -v 19.3.0 -s -i 
+    
+    
     
     LICENSE UPL 1.0
     
@@ -42,8 +42,8 @@ Before you build the image make sure that you have provided the installation bin
 **IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the database is ready to be used:
 
     #########################
-	DATABASE IS READY TO USE!
-	#########################
+    DATABASE IS READY TO USE!
+    #########################
 
 You may extend the image with your own Dockerfile and create the users and tablespaces that you may need.
 
@@ -61,7 +61,7 @@ To run your Oracle Database Docker image use the **docker run** command as follo
 	-e ORACLE_PWD=<your database passwords> \
 	-e ORACLE_CHARACTERSET=<your character set> \
 	-v [<host mount point>:]/opt/oracle/oradata \
-	oracle/database:19.3.0-ee
+	oracle/database:19.3.0-se2
 	
 	Parameters:
 	   --name:        The name of the container (default: auto generated)
@@ -82,6 +82,13 @@ To run your Oracle Database Docker image use the **docker run** command as follo
 	   -v /opt/oracle/scripts/setup | /docker-entrypoint-initdb.d/setup
 	                  Optional: A volume with custom scripts to be run after database setup.
 	                  For further details see the "Running scripts after setup and on startup" section below.
+			  
+			  
+	For example: In my case:
+	
+docker run --name 19.3.0-se2 -p 1521:1521 -p 5500:5500 -e ORACLE_SID=CIT472CDB -e ORACLE_PDB=CIT472PDB -e      ORACLE_PWD=cit472Password -v /Users/pakkwan/workspace/docker_oracle/oradata:/opt/oracle/oradata oracle/database:19.3.0-se2
+	
+	
 
 Once the container has been started and the database created you can connect to it just like to any other database:
 
